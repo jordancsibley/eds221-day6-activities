@@ -1,0 +1,133 @@
+---
+title: "Day 6 EOD Activity - lobsters"
+author: "Jordan Sibley"
+format: html
+---
+
+## Getting started
+```{r}
+# load in packages 
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+
+```{r}
+# read in data 
+lobsters_data <- read_csv(here("data","Lobster_Abundance_All_Years_20210412.csv"), na = c("-99999", "")) %>% 
+  clean_names() %>% 
+  uncount(count)
+
+# the uncount(count) function got rid of the count column and instead made duplicate rows if the count was higher than 1. Created more rows and therefor we no longer need the count column  
+
+```
+
+
+## Find counts and mean sizes by site & year
+```{r}
+# create summary table that finds the total counts and mean carapace lengths of lobsters in the data set by site and year
+
+lobs_total <- lobsters_data %>% 
+  group_by(site, year) %>%
+  summarise(mean_lengths = mean(size_mm, na.rm =TRUE),
+            count = n())
+```
+
+```{r}
+# visualize data 
+ggplot(data = lobs_total, aes(x = year, y = count, color = site))+
+  geom_point()+
+  theme(legend.position = "none")+
+  labs(title = "Lobster count per year",
+       x = "Year",
+       y = "Total lobsters observed")+
+  facet_wrap(~site, ncol = 2, nrow = 3)
+  
+```
+
+
+## Find the proportion of legal lobsters at each site for 2020
+```{r}
+# creating subset that only has data from 2020 
+lobsters_2020 <- lobsters_data %>% 
+  filter(year == "2020") %>% 
+  select(year, date, site, size_mm)
+
+# counts of lobsters observed in each site 
+lobs_legal <- lobsters_2020 %>% 
+  mutate(legal = case_when(size_mm < 79.76 ~ "no", 
+            size_mm >= 79.76 ~ "yes",)) %>% 
+  group_by(site, legal) %>% 
+  summarise(count = n())
+```
+
+```{r}
+# visualize the data in stacked columns 
+ggplot(data = lobs_legal, aes(x = site, y = count, color = legal, fill = legal))+
+  geom_col(position = "fill")+
+  labs(title = "Proportion of legal lobsters per site",
+       x = "Site",
+       y = "Lobster count")
+```
+
+- The sites that had the largest proportions of legal lobsters were Isla Vista and Naples. This could be because they two sites are within marine protected areas where harvesting lobsters is illegal. 
+
+
+## Random lobster wrangling 
+
+### filter()
+```{r}
+ex_a <- lobsters_data %>% 
+  filter(site == "IVEE" | site == "CARP" | site == "NAPL")
+
+ex_b_august <- lobsters_data %>%
+  filter(month == 8)
+
+ex_c_aq <- lobsters_data %>% 
+  filter(site == "AQUE" | size_mm > 70)
+
+ex_d_no_napl <- lobsters_data %>% 
+  filter(!site == "NAPL")
+```
+
+### group_by %>%  summarize() 
+```{r}
+ex_e <- lobsters_data %>% 
+  group_by(site) %>% 
+  summarize(mean_length = mean(size_mm, na.rm = TRUE), sd = sd(size_mm, na.rm = TRUE))
+
+ex_f <- lobsters_data %>% 
+  group_by(site, month) %>%
+  summarize(max_carapace = max(size_mm, na.rm = TRUE))
+```
+
+### mutate()
+```{r}
+ex_g <- lobsters_data %>%
+  mutate(lenght_cm = size_mm * 10)
+
+ex_h <- lobsters_data %>%
+  mutate(across(site, tolower))
+
+ex_i <- lobsters_data %>%
+  mutate(area = as.character(area))
+```
+
+
+### case_when
+```{r}
+lobs_legal <- lobsters_2020 %>% 
+  mutate(legal = case_when(size_mm < 79.76 ~ "no", 
+            size_mm >= 79.76 ~ "yes",)) %>% 
+  group_by(site, legal) %>% 
+  summarise(count = n())
+
+ex_j <- lobsters_data %>% 
+  mutate(size_bin = case_when(size_mm <= 70 ~ "large"))
+
+ex_k <- lobsters_data %>%
+  mutate(designation = case_when(site == "IVEE" | site == "NAPL" ~ "MPA",
+    TRUE ~ "not MPA"))
+```
+
