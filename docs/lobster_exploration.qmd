@@ -2,6 +2,9 @@
 title: "Day 6 EOD Activity - lobsters"
 author: "Jordan Sibley"
 format: html
+execute: 
+  warning: false
+  message: false
 ---
 
 ## Getting started
@@ -76,7 +79,7 @@ ggplot(data = lobs_legal, aes(x = site, y = count, color = legal, fill = legal))
 
 ## Random lobster wrangling 
 
-### filter()
+#### filter()
 ```{r}
 ex_a <- lobsters_data %>% 
   filter(site == "IVEE" | site == "CARP" | site == "NAPL")
@@ -91,7 +94,7 @@ ex_d_no_napl <- lobsters_data %>%
   filter(!site == "NAPL")
 ```
 
-### group_by %>%  summarize() 
+#### group_by %>%  summarize() 
 ```{r}
 ex_e <- lobsters_data %>% 
   group_by(site) %>% 
@@ -102,7 +105,7 @@ ex_f <- lobsters_data %>%
   summarize(max_carapace = max(size_mm, na.rm = TRUE))
 ```
 
-### mutate()
+#### mutate()
 ```{r}
 ex_g <- lobsters_data %>%
   mutate(lenght_cm = size_mm * 10)
@@ -115,7 +118,7 @@ ex_i <- lobsters_data %>%
 ```
 
 
-### case_when
+#### case_when
 ```{r}
 lobs_legal <- lobsters_2020 %>% 
   mutate(legal = case_when(size_mm < 79.76 ~ "no", 
